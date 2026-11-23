@@ -1921,3 +1921,20 @@ func TestFuncMap_FrameworkHelpersWinOnCollision(t *testing.T) {
 		t.Errorf("body = %s, want framework T to translate 'hello' to 'hola'", rec.Body.String())
 	}
 }
+
+// TestI18n_PickLangChineseScript — a site that ships zh-Hans and
+// zh-Hant gets the right script from region-only tags, which a
+// two-letter prefix match cannot do.
+func TestI18n_PickLangChineseScript(t *testing.T) {
+	fsys := multiLangFS()
+	fsys["locales/zh-Hans.json"] = &fstest.MapFile{Data: []byte(`{}`)}
+	fsys["locales/zh-Hant.json"] = &fstest.MapFile{Data: []byte(`{}`)}
+	s := withSiteOpts(t, fsys, Options{SupportedLangs: []string{"en", "zh-Hans", "zh-Hant"}, DefaultLang: "en"})
+	for header, want := range map[string]string{"zh-TW": "zh-Hant", "zh-CN,en": "zh-Hans", "en-US,zh-TW": "en"} {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Accept-Language", header)
+		if got := s.pickLang(req); got != want {
+			t.Errorf("pickLang(%q) = %q, want %q", header, got, want)
+		}
+	}
+}

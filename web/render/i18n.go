@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
-	"strings"
 
 	"github.com/hblabs-co/kit/core/constants"
+	"github.com/hblabs-co/kit/web/langpick"
 )
 
 // langCookie is the cookie name we use to remember the visitor's
@@ -58,7 +58,9 @@ func (s *Site) translate(lang, key string) string {
 // pickLang resolves the visitor's preferred language using, in order:
 //
 //  1. The hbl_lang cookie if it points to a still-supported lang.
-//  2. The first 2-letter prefix in Accept-Language we support.
+//  2. The first Accept-Language tag we can serve, negotiated by
+//     langpick.Negotiate (exact tag, Chinese script variants, then
+//     the primary subtag).
 //  3. The site's DefaultLang.
 //
 // We deliberately don't parse quality values (q=...) — the order
@@ -67,18 +69,9 @@ func (s *Site) pickLang(r *http.Request) string {
 	if c, _ := r.Cookie(langCookie); c != nil && contains(s.supportedLangs, c.Value) {
 		return c.Value
 	}
-
-	for _, tag := range strings.Split(r.Header.Get(constants.HeaderAcceptLanguage), ",") {
-		tag = strings.TrimSpace(tag)
-		// strip ";q=..."
-		if i := strings.IndexByte(tag, ';'); i >= 0 {
-			tag = tag[:i]
-		}
-		if len(tag) >= 2 && contains(s.supportedLangs, strings.ToLower(tag[:2])) {
-			return strings.ToLower(tag[:2])
-		}
+	if lang := langpick.Negotiate(r.Header.Get(constants.HeaderAcceptLanguage), s.supportedLangs); lang != "" {
+		return lang
 	}
-
 	return s.defaultLang
 }
 
