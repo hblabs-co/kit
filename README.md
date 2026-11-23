@@ -35,8 +35,8 @@ tied to a data model. Those stay in the app.
 ## Using a module
 
 ```sh
-go get github.com/hblabs-co/kit/core@v0.2.0
-go get github.com/hblabs-co/kit/web@v0.2.0
+go get github.com/hblabs-co/kit/core@v0.3.0
+go get github.com/hblabs-co/kit/web@v0.3.0
 go mod tidy
 ```
 
@@ -89,13 +89,13 @@ Current versions:
 
 | Module | Version |
 |---|---|
-| `core` | `v0.2.0` |
-| `web` | `v0.2.0` |
+| `core` | `v0.3.0` |
+| `web` | `v0.3.0` |
 | `natsx` | `v0.3.0` |
 | `mongo` | `v0.2.0` |
 | `objectstore` | `v0.2.0` |
-| `observability` | `v0.2.0` |
-| `mail` | `v0.2.0` |
+| `observability` | `v0.3.0` |
+| `mail` | `v0.3.0` |
 
 ### Releasing
 

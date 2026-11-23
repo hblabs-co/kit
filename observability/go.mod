@@ -43,6 +43,6 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 
-require github.com/hblabs-co/kit/core v0.2.0
+require github.com/hblabs-co/kit/core v0.3.0
 
 replace github.com/hblabs-co/kit/core => ../core
