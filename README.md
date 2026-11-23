@@ -1,5 +1,14 @@
 # kit
 
+[![ci](https://github.com/hblabs-co/kit/actions/workflows/ci.yml/badge.svg)](https://github.com/hblabs-co/kit/actions/workflows/ci.yml)
+![core coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hblabs-co/kit/badges/coverage-core.json)
+![web coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hblabs-co/kit/badges/coverage-web.json)
+![natsx coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hblabs-co/kit/badges/coverage-natsx.json)
+![mongo coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hblabs-co/kit/badges/coverage-mongo.json)
+![objectstore coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hblabs-co/kit/badges/coverage-objectstore.json)
+![observability coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hblabs-co/kit/badges/coverage-observability.json)
+![mail coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hblabs-co/kit/badges/coverage-mail.json)
+
 The shared Go base of HB Labs: one repository, one Go module per area, each
 versioned on its own. Apps import tagged versions instead of copying the code.
 
@@ -114,3 +123,7 @@ cd core && go test ./log/   # the usual
 - CI (`.github/workflows/ci.yml`) runs gofmt, `go mod tidy -diff`, `go vet`
   and `go test -race` for each module.
 - Add tests with the code. New or moved code is tested with the race detector.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
