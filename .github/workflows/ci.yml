@@ -51,13 +51,13 @@ jobs:
       - name: coverage
         run: |
           pct="$(go tool cover -func=cover.out | awk '/^total:/ {sub("%","",$3); print $3}')"
-          echo "${{ matrix.module }} ${pct}" > coverage.txt
+          echo "${{ matrix.module }} ${pct}" > "coverage-${{ matrix.module }}.txt"
           echo "### ${{ matrix.module }}: ${pct}% of statements covered" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.module }}
-          path: ${{ matrix.module }}/coverage.txt
+          path: ${{ matrix.module }}/coverage-${{ matrix.module }}.txt
 
   # Publishes one shields.io endpoint file per module to the `badges` branch; the README badges read
   # them. Only on main, so pull requests never write to the repository.

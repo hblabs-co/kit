@@ -13,4 +13,4 @@ coverage.*
 .env.*
 .netrc
 cover.out
-coverage.txt
+coverage-*.txt
