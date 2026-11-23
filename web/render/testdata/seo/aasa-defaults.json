@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "XXXXXXXXXX.co.example.placeholder"
+        ],
+        "components": [
+          {
+            "/": "/es/*"
+          },
+          {
+            "/": "/en/*"
+          }
+        ]
+      }
+    ]
+  }
+}

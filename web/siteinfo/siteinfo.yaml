@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────────────
+#  HB Labs — shared site constants.  EDIT HERE, NOWHERE ELSE.
+# ─────────────────────────────────────────────────────────────────────
+#
+# Cross-service constants that are NOT translatable copy (those live
+# in each service's locales/*.json) and NOT derived from routing
+# (those come from pageURL / canonical). Every HB Labs
+# service reads them from this one file via siteinfo.FuncMap() —
+# {{ legalEntity }}, {{ range socialLinks }} — the same way every
+# service draws icons from web/uikit. A new social account or a
+# company rename is a single edit here.
+#
+# Schema lives in siteinfo.go (SiteInfo, SocialLink). The loader is
+# strict: an unknown or misspelled key fails the boot, not silently at
+# render. Values support ${VAR} / ${VAR:-default} env expansion at
+# boot (same grammar as projects.yaml and config.yaml).
+#
+# Editing flow:
+#   1. Change a value below (or add/remove a social entry).
+#   2. go test ./web/siteinfo/        # keep it green (100%)
+#   3. Prod: rebuild the consuming service (the file is go:embedded
+#      at compile time). Dev (`go run`): restart.
+
+# Company name shown in service footers' copyright line. One edit
+# renames it across every service.
+legal_entity: "HB Labs SAS"
+
+# Registered address of the legal entity. Surfaced on legal pages
+# (privacy, imprint) via {{ legalAddress }}. Edit here, every legal
+# page picks it up on next deploy.
+legal_address: "Centro Comercial Los Ejecutivos, Local 21 B, Barrio Los Ejecutivos"
+
+# Public contact address. Used in mailto: links (e.g. the plans
+# page CTAs) and anywhere a service needs to surface "write to us".
+# One edit changes it everywhere via {{ contactEmail }}.
+contact_email: "hello@hblabs.co"
+
+# Dedicated mailbox for data-protection requests (GDPR / RGPD).
+# Surfaced on the privacy page via {{ privacyEmail }}; keep this
+# distinct from contact_email so DPO traffic doesn't drown in
+# general inquiries.
+privacy_email: "privacy@hblabs.co"
+
+# Footer "Social" column. Declared order = render order. `label` is
+# the visible text; `url` opens in a new tab with rel="noopener".
+# Add a pair to add a link; delete one to drop it.
+social:
+  - label: GitHub
+    url: https://github.com/hblabs-co
+  - label: GitLab
+    url: https://gitlab.com/hblabs.co
+  - label: Twitter
+    url: https://twitter.com/hblabs
+  - label: Instagram
+    url: https://instagram.com/hblabs.co

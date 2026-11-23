@@ -1,0 +1,14 @@
+# test / coverage output
+*.out
+*.test
+coverage.*
+
+# editors, OS
+.DS_Store
+.idea/
+.vscode/
+
+# never commit credentials
+.env
+.env.*
+.netrc

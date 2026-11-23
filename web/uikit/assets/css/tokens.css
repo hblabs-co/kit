@@ -1,0 +1,254 @@
+/* ============================================================
+   HB Labs — Design Tokens
+   Tech-industrial · glass-heavy · light + dark
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ---------- Color: neutrals (light) ---------- */
+  --hb-ink-0: oklch(0.99 0.003 250);   /* paper / page bg */
+  --hb-ink-1: oklch(0.97 0.004 250);   /* surface raised */
+  --hb-ink-2: oklch(0.94 0.005 250);   /* surface sunken */
+  --hb-ink-3: oklch(0.88 0.006 250);   /* hairline strong */
+  --hb-ink-4: oklch(0.78 0.008 250);   /* muted text / icons */
+  --hb-ink-5: oklch(0.55 0.012 250);   /* secondary text */
+  --hb-ink-6: oklch(0.32 0.015 250);   /* primary text-ish */
+  --hb-ink-7: oklch(0.18 0.018 250);   /* primary text */
+  --hb-ink-8: oklch(0.10 0.020 250);   /* darkest / on-accent inverse */
+
+  /* ---------- Hairlines & alpha utilities (light) ---------- */
+  --hb-line: oklch(0.18 0.018 250 / 0.10);
+  --hb-line-strong: oklch(0.18 0.018 250 / 0.18);
+  --hb-line-soft: oklch(0.18 0.018 250 / 0.06);
+  --hb-overlay: oklch(0.10 0.020 250 / 0.40);
+
+  /* ---------- Accent (default: oklch deep blue) ---------- */
+  --hb-accent-h: 248;
+  --hb-accent-c: 0.18;
+  --hb-accent-l: 0.55;
+
+  --hb-accent: oklch(var(--hb-accent-l) var(--hb-accent-c) var(--hb-accent-h));
+  --hb-accent-soft: oklch(0.92 0.04 var(--hb-accent-h));
+  --hb-accent-fg: oklch(0.99 0.01 var(--hb-accent-h));
+  --hb-accent-hover: oklch(calc(var(--hb-accent-l) - 0.04) var(--hb-accent-c) var(--hb-accent-h));
+  --hb-accent-press: oklch(calc(var(--hb-accent-l) - 0.08) var(--hb-accent-c) var(--hb-accent-h));
+  --hb-accent-ring: oklch(var(--hb-accent-l) var(--hb-accent-c) var(--hb-accent-h) / 0.35);
+
+  /* ---------- Secondary "agent" mark (warm amber/gold) ---------- */
+  --hb-agent: oklch(0.72 0.16 65);
+  --hb-agent-soft: oklch(0.94 0.05 65);
+  --hb-agent-fg: oklch(0.20 0.04 65);
+
+  /* ---------- Semantic ---------- */
+  --hb-success: oklch(0.62 0.15 155);
+  --hb-success-soft: oklch(0.94 0.05 155);
+  --hb-warning: oklch(0.74 0.15 75);
+  --hb-warning-soft: oklch(0.96 0.05 75);
+  --hb-danger:  oklch(0.58 0.20 27);
+  --hb-danger-soft: oklch(0.95 0.05 27);
+  --hb-info:    oklch(0.65 0.14 230);
+  --hb-info-soft: oklch(0.95 0.04 230);
+
+  /* ---------- Glass system (light) ---------- */
+  --hb-glass-bg: oklch(1 0 0 / 0.55);
+  --hb-glass-bg-strong: oklch(1 0 0 / 0.72);
+  --hb-glass-bg-soft: oklch(1 0 0 / 0.35);
+  --hb-glass-border: oklch(1 0 0 / 0.65);
+  --hb-glass-stroke: oklch(0.18 0.018 250 / 0.08);
+  --hb-glass-shine: linear-gradient(
+    180deg,
+    oklch(1 0 0 / 0.55) 0%,
+    oklch(1 0 0 / 0.10) 40%,
+    oklch(1 0 0 / 0) 100%
+  );
+
+  /* ---------- Page background pattern (light) ---------- */
+  --hb-bg-mesh:
+    radial-gradient(1200px 800px at 10% -10%, oklch(0.88 0.10 var(--hb-accent-h) / 0.55), transparent 60%),
+    radial-gradient(900px 700px at 110% 10%, oklch(0.90 0.08 65 / 0.45), transparent 55%),
+    radial-gradient(1000px 800px at 50% 120%, oklch(0.86 0.10 200 / 0.40), transparent 60%),
+    linear-gradient(180deg, oklch(0.985 0.004 250) 0%, oklch(0.965 0.006 250) 100%);
+
+  --hb-bg-grid:
+    linear-gradient(oklch(0.18 0.018 250 / 0.04) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, oklch(0.18 0.018 250 / 0.04) 1px, transparent 1px) 0 0 / 32px 32px;
+
+  /* ---------- Shadows (light) ---------- */
+  --hb-shadow-sm: 0 1px 2px oklch(0.10 0.020 250 / 0.06);
+  --hb-shadow-md:
+    0 1px 2px oklch(0.10 0.020 250 / 0.06),
+    0 4px 14px oklch(0.10 0.020 250 / 0.08);
+  --hb-shadow-lg:
+    0 1px 2px oklch(0.10 0.020 250 / 0.06),
+    0 12px 32px oklch(0.10 0.020 250 / 0.10),
+    0 24px 60px oklch(0.10 0.020 250 / 0.06);
+  --hb-shadow-glass:
+    0 1px 0 oklch(1 0 0 / 0.6) inset,
+    0 -1px 0 oklch(0.18 0.018 250 / 0.04) inset,
+    0 1px 2px oklch(0.10 0.020 250 / 0.04),
+    0 14px 40px oklch(0.10 0.020 250 / 0.10);
+  --hb-shadow-focus: 0 0 0 3px var(--hb-accent-ring);
+
+  /* ---------- Typography ---------- */
+  --hb-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --hb-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --hb-text-xs:  11px;
+  --hb-text-sm:  12.5px;
+  --hb-text-md:  14px;
+  --hb-text-base: 15px;
+  --hb-text-lg:  17px;
+  --hb-text-xl:  20px;
+  --hb-text-2xl: 24px;
+  --hb-text-3xl: 30px;
+  --hb-text-4xl: 38px;
+  --hb-text-5xl: 52px;
+  --hb-text-6xl: 72px;
+
+  --hb-leading-tight: 1.15;
+  --hb-leading-snug:  1.3;
+  --hb-leading-normal: 1.5;
+  --hb-leading-relaxed: 1.65;
+
+  --hb-tracking-tight: -0.02em;
+  --hb-tracking-snug:  -0.01em;
+  --hb-tracking-normal: 0;
+  --hb-tracking-wide:  0.04em;
+  --hb-tracking-mono:  0.01em;
+
+  /* ---------- Spacing (4px base) ---------- */
+  --hb-s-1: 4px;
+  --hb-s-2: 8px;
+  --hb-s-3: 12px;
+  --hb-s-4: 16px;
+  --hb-s-5: 20px;
+  --hb-s-6: 24px;
+  --hb-s-7: 32px;
+  --hb-s-8: 40px;
+  --hb-s-9: 48px;
+  --hb-s-10: 64px;
+  --hb-s-11: 96px;
+
+  /* ---------- Radii ---------- */
+  --hb-r-xs: 4px;
+  --hb-r-sm: 6px;
+  --hb-r-md: 10px;
+  --hb-r-lg: 14px;
+  --hb-r-xl: 20px;
+  --hb-r-2xl: 28px;
+  --hb-r-full: 999px;
+
+  /* ---------- Blur ---------- */
+  --hb-blur-1: 8px;
+  --hb-blur-2: 16px;
+  --hb-blur-3: 24px;
+  --hb-blur-4: 40px;
+  --hb-blur-5: 64px;
+
+  /* glass intensity multiplier (Tweak) */
+  --hb-glass-mul: 1;
+
+  /* ---------- Z-index ---------- */
+  --hb-z-base: 0;
+  --hb-z-raised: 10;
+  --hb-z-sticky: 100;
+  --hb-z-dropdown: 1000;
+  --hb-z-overlay: 2000;
+  --hb-z-modal: 3000;
+  --hb-z-toast: 4000;
+  --hb-z-tooltip: 5000;
+
+  /* ---------- Motion ---------- */
+  --hb-dur-1: 80ms;
+  --hb-dur-2: 140ms;
+  --hb-dur-3: 220ms;
+  --hb-dur-4: 360ms;
+  --hb-dur-5: 600ms;
+
+  --hb-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --hb-ease-emphasized: cubic-bezier(0.2, 0, 0, 1.05);
+  --hb-ease-soft: cubic-bezier(0.4, 0.1, 0.2, 1);
+  --hb-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --hb-ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ============================================================
+   Dark mode — manually toggled via [data-theme="dark"]
+   ============================================================ */
+[data-theme="dark"] {
+  --hb-ink-0: oklch(0.10 0.012 250);
+  --hb-ink-1: oklch(0.14 0.014 250);
+  --hb-ink-2: oklch(0.18 0.015 250);
+  --hb-ink-3: oklch(0.24 0.016 250);
+  --hb-ink-4: oklch(0.40 0.018 250);
+  --hb-ink-5: oklch(0.62 0.014 250);
+  --hb-ink-6: oklch(0.78 0.010 250);
+  --hb-ink-7: oklch(0.92 0.008 250);
+  --hb-ink-8: oklch(0.99 0.004 250);
+
+  --hb-line: oklch(1 0 0 / 0.10);
+  --hb-line-strong: oklch(1 0 0 / 0.18);
+  --hb-line-soft: oklch(1 0 0 / 0.06);
+  --hb-overlay: oklch(0 0 0 / 0.55);
+
+  --hb-accent-l: 0.68;
+  --hb-accent-soft: oklch(0.30 0.10 var(--hb-accent-h));
+  --hb-accent-fg: oklch(0.10 0.02 var(--hb-accent-h));
+  --hb-accent-ring: oklch(var(--hb-accent-l) var(--hb-accent-c) var(--hb-accent-h) / 0.45);
+
+  --hb-agent: oklch(0.78 0.15 65);
+  --hb-agent-soft: oklch(0.30 0.08 65);
+  --hb-agent-fg: oklch(0.96 0.04 65);
+
+  --hb-success-soft: oklch(0.30 0.08 155);
+  --hb-warning-soft: oklch(0.30 0.08 75);
+  --hb-danger-soft:  oklch(0.30 0.10 27);
+  --hb-info-soft:    oklch(0.30 0.08 230);
+
+  --hb-glass-bg: oklch(0.22 0.014 250 / 0.55);
+  --hb-glass-bg-strong: oklch(0.22 0.014 250 / 0.78);
+  --hb-glass-bg-soft: oklch(0.22 0.014 250 / 0.35);
+  --hb-glass-border: oklch(1 0 0 / 0.10);
+  --hb-glass-stroke: oklch(1 0 0 / 0.06);
+  --hb-glass-shine: linear-gradient(
+    180deg,
+    oklch(1 0 0 / 0.10) 0%,
+    oklch(1 0 0 / 0.03) 40%,
+    oklch(1 0 0 / 0) 100%
+  );
+
+  --hb-bg-mesh:
+    radial-gradient(1200px 800px at 10% -10%, oklch(0.45 0.16 var(--hb-accent-h) / 0.40), transparent 60%),
+    radial-gradient(900px 700px at 110% 10%, oklch(0.45 0.14 65 / 0.30), transparent 55%),
+    radial-gradient(1000px 800px at 50% 120%, oklch(0.40 0.14 200 / 0.35), transparent 60%),
+    linear-gradient(180deg, oklch(0.10 0.012 250) 0%, oklch(0.08 0.012 250) 100%);
+
+  --hb-bg-grid:
+    linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, oklch(1 0 0 / 0.04) 1px, transparent 1px) 0 0 / 32px 32px;
+
+  --hb-shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);
+  --hb-shadow-md:
+    0 1px 2px oklch(0 0 0 / 0.4),
+    0 4px 14px oklch(0 0 0 / 0.4);
+  --hb-shadow-lg:
+    0 1px 2px oklch(0 0 0 / 0.4),
+    0 12px 32px oklch(0 0 0 / 0.5),
+    0 24px 60px oklch(0 0 0 / 0.4);
+  --hb-shadow-glass:
+    0 1px 0 oklch(1 0 0 / 0.10) inset,
+    0 -1px 0 oklch(0 0 0 / 0.30) inset,
+    0 1px 2px oklch(0 0 0 / 0.40),
+    0 14px 40px oklch(0 0 0 / 0.50);
+}
+
+/* ============================================================
+   Reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --hb-dur-1: 0ms; --hb-dur-2: 0ms; --hb-dur-3: 0ms;
+    --hb-dur-4: 0ms; --hb-dur-5: 0ms;
+  }
+}

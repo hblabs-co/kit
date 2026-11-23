@@ -1,0 +1,9 @@
+{{- if .SecurityIsPlaceholder -}}
+# WARNING: SecurityContact unset in render.SEOOptions — placeholder follows.
+{{end -}}
+Contact: mailto:{{.SecurityContact}}
+Expires: {{.Expires}}
+Preferred-Languages: {{range $i, $l := .PreferredLanguages}}{{if $i}}, {{end}}{{$l}}{{end}}
+{{- if .CanonicalHost}}
+Canonical: {{.CanonicalHost}}/.well-known/security.txt
+{{- end}}

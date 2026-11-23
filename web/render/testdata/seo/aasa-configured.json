@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "ABCD123456.co.hblabs.app"
+        ],
+        "components": [
+          {
+            "/": "/auth/*"
+          },
+          {
+            "/": "/share/*"
+          }
+        ]
+      }
+    ]
+  }
+}

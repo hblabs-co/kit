@@ -1,0 +1,10 @@
+# Site
+
+> Auto-generated stub. Set SEOOptions.LLMsTxt to override with real content.
+
+## Languages
+- [es](https://example.com/es/)
+- [en](https://example.com/en/)
+
+## Sitemap
+- [sitemap.xml](https://example.com/sitemap.xml)

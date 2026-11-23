@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+{{range .SocialBots -}}
+User-agent: {{.}}
+Allow: /
+
+{{end}}{{- if .CanonicalHost -}}
+Sitemap: {{.CanonicalHost}}/sitemap.xml
+{{end -}}

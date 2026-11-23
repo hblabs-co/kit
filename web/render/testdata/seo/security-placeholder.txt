@@ -1,0 +1,5 @@
+# WARNING: SecurityContact unset in render.SEOOptions — placeholder follows.
+Contact: mailto:security@example.invalid
+Expires: 2027-05-13T00:00:00Z
+Preferred-Languages: es, en
+Canonical: https://example.com/.well-known/security.txt
