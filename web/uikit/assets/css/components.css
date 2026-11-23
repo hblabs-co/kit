@@ -267,6 +267,10 @@ button { font-family: inherit; }
 .hb-field__hint { font-size: var(--hb-text-sm); color: var(--hb-ink-5); }
 .hb-field__error { font-size: var(--hb-text-sm); color: var(--hb-danger); }
 
+/* Honeypot input: off-screen for people, still in the form for bots.
+   Pair with tabindex="-1" autocomplete="off" aria-hidden="true". */
+.hb-honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+
 /* Input group with leading mono prefix (e.g. domain) */
 .hb-inputgroup {
   display: flex;
