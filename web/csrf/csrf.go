@@ -25,6 +25,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hblabs-co/kit/core/constants"
+	"github.com/hblabs-co/kit/core/log"
+	"github.com/hblabs-co/kit/core/system"
 	"github.com/hblabs-co/kit/web/siteurl"
 )
 
@@ -84,6 +87,16 @@ func New(opts Options) *Guard {
 	if g.maxAge <= 0 {
 		g.maxAge = int(DefaultMaxAge / time.Second)
 	}
+	secureSrc := system.SourceDefault
+	switch {
+	case opts.Insecure:
+		secureSrc = "option (Insecure)"
+	case !secure:
+		secureSrc = "local dev (" + constants.EnvHBEnv + ")"
+	}
+	log.Info(system.DefaultsMsg, "area", "csrf",
+		"cookie", g.cookie, "field", g.field, "secure", g.secure, "secure_source", secureSrc,
+		"max_age", (time.Duration(g.maxAge) * time.Second).String())
 	return g
 }
 

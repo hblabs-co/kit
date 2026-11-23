@@ -1,6 +1,7 @@
 package scaleway
 
 import (
+	"log/slog"
 	"os"
 	"strings"
 )
@@ -28,7 +29,41 @@ func NotifierFromEnv(to string) *Notifier {
 		Region:    env(EnvRegion),
 	})
 	from := Address{Email: env(EnvMailFrom), Name: env(EnvMailFromName)}
-	return NewNotifier(client, from, Address{Email: strings.TrimSpace(to)})
+	n := NewNotifier(client, from, Address{Email: strings.TrimSpace(to)})
+	logNotifierDefaults(n, client)
+	return n
+}
+
+// logNotifierDefaults logs, once at startup, what the notifier will
+// use. Secrets (secret key, project ID) are reported only as set or
+// unset, never by value. It goes to slog.Default(), which the kit's
+// system.Boot points at the service logger. The message and the
+// "area" attribute match the kit's other "effective defaults" lines.
+func logNotifierDefaults(n *Notifier, c *Client) {
+	var missing []string
+	for _, k := range []string{EnvSecretKey, EnvProjectID, EnvMailFrom} {
+		if env(k) == "" {
+			missing = append(missing, k)
+		}
+	}
+	region, regionSrc := c.Region, "env "+EnvRegion
+	if env(EnvRegion) == "" {
+		regionSrc = "default"
+	}
+	slog.Info("effective defaults", "area", "mail",
+		"enabled", n.Enabled(),
+		"to", n.to.Email, "from", n.from.Email, "from_name", n.from.Name,
+		"region", region, "region_source", regionSrc,
+		EnvSecretKey, setOrUnset(env(EnvSecretKey)),
+		EnvProjectID, setOrUnset(env(EnvProjectID)),
+		"missing", strings.Join(missing, ","))
+}
+
+func setOrUnset(v string) string {
+	if v == "" {
+		return "unset"
+	}
+	return "set"
 }
 
 func env(key string) string { return strings.TrimSpace(os.Getenv(key)) }

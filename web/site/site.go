@@ -52,10 +52,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"github.com/hblabs-co/kit/core/constants"
 
 	"github.com/hblabs-co/kit/core/httpx"
+	"github.com/hblabs-co/kit/core/log"
 	"github.com/hblabs-co/kit/core/secheaders"
 	"github.com/hblabs-co/kit/core/system"
 	"github.com/hblabs-co/kit/web/render"
@@ -281,6 +284,7 @@ func BannerExtras() []string {
 //     beyond what the middleware bundle consumes (CanonicalHost
 //     for external integrations, SEO config, etc.).
 func New(opts Options) (http.Handler, []system.Module, *config.Config, error) {
+	log.Info(system.DefaultsMsg, siteDefaults(opts)...)
 	opts = withDefaults(opts)
 	siteHandler, renderDev, cfg, err := mountSite(opts)
 	if err != nil {
@@ -338,6 +342,39 @@ func withDefaults(opts Options) Options {
 		}
 	}
 	return opts
+}
+
+// siteDefaults describes the values New will use for opts (given as
+// passed, before withDefaults), with their sources.
+func siteDefaults(opts Options) []any {
+	src := func(v string) string {
+		if v == "" {
+			return system.SourceDefault
+		}
+		return system.SourceOption
+	}
+	eff := withDefaults(opts)
+	mounts := make([]string, 0, len(eff.ExtraStatic)+1)
+	mounts = append(mounts, "static")
+	for k := range eff.ExtraStatic {
+		mounts = append(mounts, "static/"+k)
+	}
+	slices.Sort(mounts[1:])
+	uikitSrc := system.SourceDefault
+	if opts.WithoutUIKit {
+		uikitSrc = "disabled (WithoutUIKit)"
+	} else if _, ok := opts.ExtraStatic[UIKitMount]; ok {
+		uikitSrc = system.SourceOption
+	}
+	return []any{
+		"area", "site",
+		"dev", siteurl.IsDev(),
+		"config_path", eff.ConfigPath, "config_path_source", src(opts.ConfigPath),
+		"watch_root", eff.WatchRoot, "watch_root_source", src(opts.WatchRoot),
+		"static_mounts", strings.Join(mounts, ","), "uikit_source", uikitSrc,
+		"rules", opts.Rules.PipelinesDir != "",
+		"styled_not_found", opts.StyledNotFound,
+	}
 }
 
 // mountSite resolves the framework config and builds the inner

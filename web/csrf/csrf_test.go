@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hblabs-co/kit/core/constants"
+	"github.com/hblabs-co/kit/core/log"
 	"github.com/hblabs-co/kit/web/uikit"
 )
 
@@ -126,6 +127,22 @@ func TestClientScriptDefaults(t *testing.T) {
 	for _, want := range []string{`"` + DefaultCookie + `"`, `"` + DefaultField + `"`, "data-csrf-form"} {
 		if !strings.Contains(string(body), want) {
 			t.Errorf("csrf.js missing %s", want)
+		}
+	}
+}
+
+func TestNew_LogsDefaults(t *testing.T) {
+	t.Setenv(constants.EnvHBEnv, "prod")
+	buf := log.Capture(t, "csrf")
+	New(Options{})
+	New(Options{Insecure: true})
+	t.Setenv(constants.EnvHBEnv, "local")
+	New(Options{})
+	out := buf.String()
+	for _, want := range []string{"area=csrf", "cookie=hbl_csrf", "field=_csrf", "secure=true", "secure_source=default",
+		`secure_source="option (Insecure)"`, `secure_source="local dev (HB_ENV)"`, "max_age=720h0m0s"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("log missing %q:\n%s", want, out)
 		}
 	}
 }

@@ -341,6 +341,8 @@ func Boot(opts *bootOptions) context.Context {
 		lg.Info("build", args...)
 	}
 
+	lg.Info(DefaultsMsg, bootDefaults()...)
+
 	bootOnce.Do(func() {
 		appCtx, appStop = signal.
 			NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

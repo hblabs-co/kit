@@ -1,6 +1,7 @@
 package site
 
 import (
+	"fmt"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,7 @@ import (
 	"testing/fstest"
 
 	"github.com/hblabs-co/kit/core/constants"
+	"github.com/hblabs-co/kit/core/log"
 )
 
 // siteFixture is the smallest tree site.New accepts in prod mode:
@@ -238,5 +240,36 @@ func TestNew_DefaultsServeUIKit(t *testing.T) {
 	}
 	if rec := get(t, h, "/static/uikit/css/tokens.css"); rec.Code != http.StatusOK {
 		t.Fatalf("uikit tokens.css = %d", rec.Code)
+	}
+}
+
+func TestSiteDefaultsLog(t *testing.T) {
+	t.Setenv(constants.EnvHBEnv, "production")
+	buf := log.Capture(t, "site")
+	_, _, _, err := New(Options{SiteFS: siteFixture(), FuncMap: map[string]any{"greet": func() string { return "" }}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+	for _, want := range []string{
+		`msg="effective defaults"`, "area=site", "dev=false",
+		"config_path=config/config.yaml", "config_path_source=default",
+		"watch_root=.", "static_mounts=static,static/uikit", "uikit_source=default",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("defaults log missing %q:\n%s", want, out)
+		}
+	}
+
+	own := fstest.MapFS{}
+	got := siteDefaults(Options{ConfigPath: "c.yaml", ExtraStatic: map[string]fs.FS{UIKitMount: own, "a": own}})
+	line := fmt.Sprint(got...)
+	for _, want := range []string{"config_path_sourceoption", "static_mountsstatic,static/a,static/uikit", "uikit_sourceoption"} {
+		if !strings.Contains(strings.ReplaceAll(line, " ", ""), want) {
+			t.Errorf("explicit options: %q missing in %v", want, got)
+		}
+	}
+	if line := fmt.Sprint(siteDefaults(Options{WithoutUIKit: true})...); !strings.Contains(line, "disabled (WithoutUIKit)") {
+		t.Errorf("WithoutUIKit not reported: %s", line)
 	}
 }

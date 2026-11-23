@@ -34,6 +34,7 @@ import (
 	"time"
 
 	"github.com/hblabs-co/kit/core/constants"
+	"github.com/hblabs-co/kit/core/log"
 	"github.com/hblabs-co/kit/core/system"
 )
 
@@ -232,6 +233,14 @@ func New(opts Options) (*Resolver, error) {
 	if r.cacheControl == "" {
 		r.cacheControl = DefaultCacheControl
 	}
+	uaSrc := system.SourceOption
+	if opts.UserAgent == "" {
+		uaSrc = system.SourceDefault
+	}
+	log.Info(system.DefaultsMsg, "area", "ghrelease",
+		"repo", opts.Repo, "api_url", r.apiURL, "fallback_url", r.fallbackURL,
+		"user_agent", r.userAgent, "user_agent_source", uaSrc,
+		"ttl", r.ttl.String(), "cache_control", r.cacheControl)
 	return r, nil
 }
 

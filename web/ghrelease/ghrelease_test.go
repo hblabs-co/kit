@@ -5,11 +5,13 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/hblabs-co/kit/core/constants"
+	"github.com/hblabs-co/kit/core/log"
 	"github.com/hblabs-co/kit/core/system"
 )
 
@@ -304,5 +306,19 @@ func TestDefaultUserAgent(t *testing.T) {
 	t.Setenv(constants.EnvBuildVersion, "1.2.3")
 	if got := defaultUserAgent(); got != "HB Labs svc-test/1.2.3 (+https://hblabs.co)" {
 		t.Fatalf("booted, stamped = %q", got)
+	}
+}
+
+func TestNew_LogsDefaults(t *testing.T) {
+	buf := log.Capture(t, "ghrelease")
+	mustNew(t, Options{Repo: "owner/app"})
+	mustNew(t, Options{Repo: "owner/app", UserAgent: "ua", TTL: time.Minute})
+	out := buf.String()
+	for _, want := range []string{"area=ghrelease", "repo=owner/app",
+		"api_url=https://api.github.com/repos/owner/app/releases/latest", "user_agent_source=default",
+		"user_agent=ua", "user_agent_source=option", "ttl=10m0s", "ttl=1m0s"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("log missing %q:\n%s", want, out)
+		}
 	}
 }

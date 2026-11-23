@@ -39,6 +39,19 @@ func (f *fakeLogger) infoCount() int {
 	return len(f.infos)
 }
 
+// only returns the entries with msg.
+func (f *fakeLogger) only(msg string) []logEntry {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	var out []logEntry
+	for _, e := range f.infos {
+		if e.msg == msg {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
 // quietOpts is the test-only baseline: banner off, dotenv off,
 // fake logger. Centralised so adding a new boot flag in the future
 // doesn't fan out across every test fixture. Service name lives
@@ -66,11 +79,8 @@ func TestBoot_LogsBuildLine(t *testing.T) {
 	if ctx == nil {
 		t.Fatal("Boot returned nil ctx")
 	}
-	if got := fl.infoCount(); got != 1 {
-		t.Fatalf("Info calls = %d, want 1", got)
-	}
-	if got := fl.infos[0].msg; got != "build" {
-		t.Errorf("msg = %q, want \"build\"", got)
+	if got := len(fl.only("build")); got != 1 {
+		t.Fatalf("build lines = %d, want 1", got)
 	}
 }
 
@@ -82,8 +92,8 @@ func TestBoot_NoBuildTimeNoLog(t *testing.T) {
 	fl := &fakeLogger{}
 
 	Boot(quietOpts("test-svc", fl))
-	if got := fl.infoCount(); got != 0 {
-		t.Errorf("Info calls = %d, want 0 (build line should be skipped)", got)
+	if got := len(fl.only("build")); got != 0 {
+		t.Errorf("build lines = %d, want 0 (build line should be skipped)", got)
 	}
 }
 
