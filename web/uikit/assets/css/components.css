@@ -1118,3 +1118,44 @@ button { font-family: inherit; }
 .hb-theme-toggle .icon-sun { display: none; }
 [data-theme="dark"] .hb-theme-toggle .icon-moon { display: none; }
 [data-theme="dark"] .hb-theme-toggle .icon-sun { display: block; }
+
+/* ============================================================
+   Code block with copy button
+   ============================================================ */
+/* <div class="hb-code" data-copy-label="Copy" data-copied-label="Copied">
+     <pre><code>…</code></pre></div>
+   js/public/copy.js adds the .hb-code__copy button when the
+   Clipboard API is available; without it the block is plain text. */
+.hb-code { position: relative; }
+.hb-code pre {
+  margin: 0;
+  padding: var(--hb-s-4);
+  padding-right: 88px;
+  overflow-x: auto;
+  font-family: var(--hb-font-mono);
+  font-size: var(--hb-text-sm);
+  background: var(--hb-ink-1);
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-r-md);
+}
+.hb-code__copy { position: absolute; top: var(--hb-s-2); right: var(--hb-s-2); }
+/* Phones: wrap long commands instead of hiding them behind a
+   scroll; the copy button sits above the text. */
+@media (max-width: 600px) {
+  .hb-code pre { white-space: pre-wrap; overflow-wrap: anywhere; padding-right: var(--hb-s-4); padding-top: 48px; }
+}
+
+/* ============================================================
+   Screenshot frame
+   ============================================================ */
+/* On an <img>, or on a <picture> wrapping light/dark sources. */
+picture.hb-shot { display: block; }
+.hb-shot img, img.hb-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--hb-r-xl);
+  border: 1px solid var(--hb-line);
+  box-shadow: var(--hb-shadow-lg);
+  background: var(--hb-ink-1);
+}

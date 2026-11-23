@@ -137,3 +137,39 @@ func TestDevFS_PrefersOnDiskWhenAvailable(t *testing.T) {
 func filepathAbs(p string) (string, error) {
 	return filepathAbsImpl(p)
 }
+
+// TestFS_ExposesPublicScripts pins the script paths and the hooks
+// page templates depend on (classes and data attributes).
+func TestFS_ExposesPublicScripts(t *testing.T) {
+	want := map[string][]string{
+		"js/public/theme.js": {"theme-toggle"},
+		"js/public/copy.js":  {".hb-code", "hb-code__copy", "data-copy-label", "data-copied-label"},
+		"js/public/csrf.js":  {"data-csrf-form"},
+	}
+	for path, hooks := range want {
+		body, err := fs.ReadFile(FS, path)
+		if err != nil {
+			t.Errorf("read %s: %v", path, err)
+			continue
+		}
+		for _, h := range hooks {
+			if !strings.Contains(string(body), h) {
+				t.Errorf("%s missing %q", path, h)
+			}
+		}
+	}
+}
+
+// TestComponentsCSS_FormAndContentClasses pins the classes the copy
+// script and form markup rely on.
+func TestComponentsCSS_FormAndContentClasses(t *testing.T) {
+	body, err := fs.ReadFile(FS, "css/components.css")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, class := range []string{".hb-code ", ".hb-code__copy", ".hb-shot", ".hb-honeypot"} {
+		if !strings.Contains(string(body), class) {
+			t.Errorf("components.css missing %s", class)
+		}
+	}
+}
