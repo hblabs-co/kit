@@ -34,6 +34,7 @@ import (
 	"time"
 
 	"github.com/hblabs-co/kit/core/constants"
+	"github.com/hblabs-co/kit/core/system"
 )
 
 // Defaults applied by New.
@@ -41,7 +42,8 @@ const (
 	// DefaultTTL is how long a fetched release is served before the
 	// next Latest call refreshes it.
 	DefaultTTL = 10 * time.Minute
-	// DefaultUserAgent identifies the client to the GitHub API.
+	// DefaultUserAgent identifies the client to the GitHub API when
+	// no service was booted (see Options.UserAgent).
 	DefaultUserAgent = "hblabs-kit-ghrelease/1 (+https://hblabs.co)"
 	// DefaultCacheControl is set on the Handler's redirect: short, so
 	// CDNs and browsers do not pin an old version for long.
@@ -146,11 +148,27 @@ type Options struct {
 	TTL time.Duration
 	// Client defaults to http.DefaultClient.
 	Client *http.Client
-	// UserAgent defaults to DefaultUserAgent.
+	// UserAgent defaults to "HB Labs <service>/<version>
+	// (+https://hblabs.co)" from system.ServiceName and the build
+	// version ("dev" when unstamped), or DefaultUserAgent when
+	// system.Boot has not run.
 	UserAgent string
 	// CacheControl for the Handler's redirect; defaults to
 	// DefaultCacheControl.
 	CacheControl string
+}
+
+// defaultUserAgent names the booted service and its build version.
+func defaultUserAgent() string {
+	svc := system.ServiceName()
+	if svc == "" {
+		return DefaultUserAgent
+	}
+	version := system.ReadBuildInfo().Version
+	if version == "" {
+		version = "dev"
+	}
+	return "HB Labs " + svc + "/" + version + " (+https://hblabs.co)"
 }
 
 // Resolver caches the latest release. Safe for concurrent use.
@@ -209,7 +227,7 @@ func New(opts Options) (*Resolver, error) {
 		r.client = http.DefaultClient
 	}
 	if r.userAgent == "" {
-		r.userAgent = DefaultUserAgent
+		r.userAgent = defaultUserAgent()
 	}
 	if r.cacheControl == "" {
 		r.cacheControl = DefaultCacheControl

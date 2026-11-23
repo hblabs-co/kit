@@ -8,6 +8,9 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/hblabs-co/kit/core/constants"
+	"github.com/hblabs-co/kit/core/system"
 )
 
 const goodPayload = `{"tag_name":"v0.1.1","draft":false,"assets":[
@@ -20,7 +23,7 @@ func fakeAPI(t *testing.T, status int, body string) (*httptest.Server, *atomic.I
 	var hits atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hits.Add(1)
-		if r.Header.Get("Accept") != acceptJSON || r.Header.Get("User-Agent") != DefaultUserAgent {
+		if r.Header.Get("Accept") != acceptJSON || r.Header.Get("User-Agent") == "" {
 			t.Errorf("unexpected headers: %v", r.Header)
 		}
 		w.WriteHeader(status)
@@ -64,7 +67,7 @@ func TestNew_Defaults(t *testing.T) {
 	if r.apiURL != "https://api.github.com/repos/owner/app/releases/latest" ||
 		r.fallbackURL != "https://github.com/owner/app/releases/latest" ||
 		r.ttl != DefaultTTL || r.client != http.DefaultClient ||
-		r.userAgent != DefaultUserAgent || r.cacheControl != DefaultCacheControl {
+		r.userAgent != defaultUserAgent() || r.cacheControl != DefaultCacheControl {
 		t.Fatalf("defaults not applied: %+v", r)
 	}
 }
@@ -283,5 +286,23 @@ func TestRefresher_DefaultInterval(t *testing.T) {
 	<-done
 	if hits.Load() != 1 {
 		t.Fatalf("hits = %d, want 1", hits.Load())
+	}
+}
+
+func TestDefaultUserAgent(t *testing.T) {
+	if system.ServiceName() != "" {
+		t.Skip("a service was booted in this test binary")
+	}
+	if got := defaultUserAgent(); got != DefaultUserAgent {
+		t.Fatalf("unbooted = %q", got)
+	}
+	system.Boot(system.BootOptions("svc-test").With(system.WithoutDotenv(), system.WithoutBanner()))
+	t.Setenv(constants.EnvBuildVersion, "")
+	if got := defaultUserAgent(); got != "HB Labs svc-test/dev (+https://hblabs.co)" {
+		t.Fatalf("booted, unstamped = %q", got)
+	}
+	t.Setenv(constants.EnvBuildVersion, "1.2.3")
+	if got := defaultUserAgent(); got != "HB Labs svc-test/1.2.3 (+https://hblabs.co)" {
+		t.Fatalf("booted, stamped = %q", got)
 	}
 }
