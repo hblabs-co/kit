@@ -47,9 +47,9 @@ const (
 	EnvLogQuietPaths = "HB_LOG_QUIET_PATHS"
 
 	// EnvPort is the listen port of the service's HTTP server, as
-	// a bare integer ("8080", not ":8080"). The full listen address
-	// is built from this — services prepend ":" via fmt.Sprintf to
-	// match net.Listen syntax. Aligned with the standard PORT env
+	// a bare integer ("8080", not ":8080"). system.ListenAddr (and
+	// system.NewServer with an empty Addr) builds the listen address
+	// from it, falling back to the port given to system.Boot. Aligned with the standard PORT env
 	// convention (k8s, Heroku, fly.io) so platform tooling can
 	// inject a port without service-specific knowledge.
 	EnvPort = "HB_PORT"

@@ -8,17 +8,22 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/hblabs-co/kit/core/constants"
 )
 
-// TestServer_RegisterRequiresAddr — a missing Addr is a config bug
-// that should fail loudly at boot, not silently bind to ":0" and
-// confuse ops. Validation lives in Register so the error path matches
-// other modules' (uniform inside RunForever).
-func TestServer_RegisterRequiresAddr(t *testing.T) {
+// TestServer_DefaultAddr — an empty Addr binds ListenAddr() (HB_PORT
+// here), so apps no longer build ":<port>" themselves.
+func TestServer_DefaultAddr(t *testing.T) {
+	addr := pickFreeAddr(t)
+	t.Setenv(constants.EnvPort, addr[strings.LastIndex(addr, ":")+1:])
 	s := NewServer(ServerOptions{Handler: http.NotFoundHandler()})
-	err := s.Register(context.Background())
-	if err == nil || !strings.Contains(err.Error(), "Addr") {
-		t.Errorf("Register err = %v, want it to mention \"Addr\"", err)
+	if err := s.Register(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = s.Shutdown(context.Background()) }()
+	if s.opts.Addr != ListenAddr() || !strings.HasSuffix(addr, s.opts.Addr) {
+		t.Fatalf("Addr = %q, want %q", s.opts.Addr, ListenAddr())
 	}
 }
 

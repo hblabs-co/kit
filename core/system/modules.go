@@ -65,7 +65,7 @@ type ShutdownModule interface {
 //
 //	ctx := system.Boot("service-edge", system.WithPort(8080))
 //	if err := system.RunForever(ctx,
-//	    system.NewServer(system.ServerOptions{Addr: ":8080", Handler: handler}),
+//	    system.NewServer(system.ServerOptions{Handler: handler}),
 //	    devServer, // may be nil; RunForever skips it
 //	); err != nil {
 //	    log.Error("run", "err", err)

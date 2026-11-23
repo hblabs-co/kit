@@ -50,7 +50,7 @@ var DefaultServerOptions = ServerOptions{
 // back to the matching field in DefaultServerOptions, so the typical
 // caller fills only Addr and Handler.
 type ServerOptions struct {
-	Addr              string        // required, e.g. ":8080"
+	Addr              string        // default ListenAddr(): ":" + HB_PORT, else Boot's Port, else 8080
 	Handler           http.Handler  // required
 	ReadHeaderTimeout time.Duration // default 10 s
 	ReadTimeout       time.Duration // default 30 s
@@ -83,7 +83,7 @@ type Server struct {
 //
 //	ctx := system.Boot("service-edge", system.WithPort(8080))
 //	if err := system.RunForever(ctx,
-//	    system.NewServer(system.ServerOptions{Addr: ":8080", Handler: handler}),
+//	    system.NewServer(system.ServerOptions{Handler: handler}), // Addr: system.ListenAddr()
 //	    // …other modules
 //	); err != nil { … }
 func NewServer(opts ServerOptions) *Server {
@@ -97,7 +97,7 @@ func NewServer(opts ServerOptions) *Server {
 // the interface uniform across modules.
 func (s *Server) Register(ctx context.Context) error {
 	if s.opts.Addr == "" {
-		return fmt.Errorf("system.Server: Addr is required")
+		s.opts.Addr = ListenAddr()
 	}
 	if s.opts.Handler == nil {
 		return fmt.Errorf("system.Server: Handler is required")

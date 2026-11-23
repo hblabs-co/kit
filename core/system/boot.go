@@ -281,9 +281,13 @@ func Boot(opts *bootOptions) context.Context {
 	// safely round-trip an arbitrary logger interface into the
 	// concrete *log.Logger that log.SetDefault demands.
 
+	setBootIdentity(opts.service, opts.port)
+
 	if !opts.skipBanner {
 		if opts.port > 0 {
-			banner.Print(opts.service, opts.port, opts.bannerExtras...)
+			// ListenPort: HB_PORT wins over the Port option, so the
+			// banner shows the port the server actually binds.
+			banner.Print(opts.service, ListenPort(), opts.bannerExtras...)
 		} else {
 			banner.Box(opts.service, opts.bannerExtras...)
 		}
