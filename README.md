@@ -17,12 +17,12 @@ versioned on its own. Apps import tagged versions instead of copying the code.
 | Module (import path prefix) | What it is | External dependencies |
 |---|---|---|
 | `github.com/hblabs-co/kit/core` | The foundation every service uses: `log` (slog wrapper), `system` (boot, lifecycle, HTTP server, build info), `envcfg` (typed env readers), `httpx` (access log, request id, client IP, SSE, JSON responses, service token), `secheaders`, `clientmeta`, `ids` (public ids, ULID, slugs), `jwt`, `periodic` (tickers, batcher), `ratelimit` (per-key token bucket with bans and a pluggable ban store), `fswatch`, `banner`, `datasources` (key/value interface + memory backend), `constants` (generic env keys, header/cookie names, probe paths) | godotenv, go-nanoid, ulid, fsnotify, golang-jwt, x/time |
-| `github.com/hblabs-co/kit/web` | The landing framework: `site` (composition root + landing helpers), `render` (file-based pages, i18n, SEO files, OG images, asset fingerprinting, dev hot reload), `uikit` (shared design system assets + icons), `siteurl`, `siteassets`, `siteinfo`, and the request rules engine under `rules/{engine,rules,dev}` | expr, otel, x/image, yaml |
+| `github.com/hblabs-co/kit/web` | The landing framework: `site` (composition root + landing helpers), `render` (file-based pages, i18n, SEO files, OG images, asset fingerprinting, dev hot reload), `uikit` (shared design system assets + icons), `siteurl`, `siteassets`, `siteinfo`, `langpick` (Accept-Language negotiation incl. Chinese scripts, endonyms), `ghrelease` (cached GitHub latest-release resolver + download redirect), `csrf` (double-submit cookie), `contactform` (mail-forwarding contact form with CSRF, honeypot, rate limit), and the request rules engine under `rules/{engine,rules,dev}` | expr, otel, x/image, yaml |
 | `github.com/hblabs-co/kit/natsx` | NATS / JetStream bus: connect, ensure streams, durable subscribe with backoff, publish with message id, core-NATS fan-out (`PublishCore`, `SubscribeCore`) | nats.go |
 | `github.com/hblabs-co/kit/mongo` | MongoDB wrapper (`Open`, `Module`, key/value datasource), duplicate-key helpers, declarative index manifests (`IndexSpec`, `Reconcile`, `FindSpec`, `ValidateManifest`) | mongo-driver v2 |
 | `github.com/hblabs-co/kit/objectstore` | MinIO / S3 client wrapper | minio-go |
 | `github.com/hblabs-co/kit/observability` | Prometheus metrics, OTLP tracing, `Healthz` / `Liveness` handlers | prometheus, otel |
-| `github.com/hblabs-co/kit/mail` | `scaleway`: Scaleway Transactional Email client (send, typed API errors, retryability, extra headers) | none |
+| `github.com/hblabs-co/kit/mail` | `scaleway`: Scaleway Transactional Email client (send, typed API errors, retryability, extra headers) and `Notifier` (fixed sender → fixed recipient, plain text, Reply-To) | none |
 
 Every module except `mail` depends on `core`; nothing else depends on anything
 else, so an app that only needs NATS does not compile Mongo or the web
