@@ -115,6 +115,7 @@ import (
 
 	"github.com/hblabs-co/kit/core/constants"
 	"github.com/hblabs-co/kit/core/log"
+	"github.com/hblabs-co/kit/core/system"
 	"github.com/hblabs-co/kit/web/render/og"
 )
 
@@ -373,7 +374,7 @@ func New(opts Options) (*Site, error) {
 // endpoint at /api/...). Order:
 //
 //	GET /healthz                → 200 ok (liveness)
-//	GET /readyz                 → 200 ok, or 503 when Options.Ready errors (readiness)
+//	GET /readyz                 → 200 ok, or 503 when draining or Options.Ready errors (readiness)
 //	GET /static/...             → embedded assets, cached immutable
 //	GET /                       → pickLang and 302 to /<lang>/
 //	GET /<lang>/[<page>]        → render the matching page template
@@ -408,13 +409,22 @@ func (s *Site) Mount(mux *http.ServeMux) {
 // upstream turns into a fast 503 instead of a stuck kubelet probe.
 const readyProbeTimeout = 2 * time.Second
 
-// handleReadyz answers the readiness probe. Without a configured
+// handleReadyz answers the readiness probe. While the process drains
+// after its shutdown signal (system.Draining) it answers 503
+// "draining" without probing anything. Otherwise, without a configured
 // Options.Ready it mirrors /healthz (200 "ok" once the binary serves —
 // right for sites with no hard runtime dependency); with one, the probe
 // decides, and its error text is surfaced in the 503 body so a failing
 // rollout is diagnosable from the probe log alone.
 func (s *Site) handleReadyz(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(constants.HeaderContentType, "text/plain; charset=utf-8")
+	if system.Draining() {
+		// Shutdown signal received: take this instance out of the
+		// load balancer while in-flight requests finish.
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte("draining"))
+		return
+	}
 	if s.ready != nil {
 		ctx, cancel := context.WithTimeout(r.Context(), readyProbeTimeout)
 		defer cancel()

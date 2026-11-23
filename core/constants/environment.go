@@ -115,10 +115,18 @@ const (
 	EnvBuildVersion = "HB_BUILD_VERSION"
 
 	// EnvShutdownTimeout overrides system.RunForever's default 25s
-	// drain on SIGTERM. Accepts a Go duration string ("25s", "1m").
+	// shutdown budget on SIGTERM (drain delay + module shutdown).
+	// Accepts a Go duration string ("25s", "1m").
 	// Stays under k8s' default 30s terminationGracePeriodSeconds —
 	// bump both together when a service genuinely needs more.
 	EnvShutdownTimeout = "HB_SHUTDOWN_TIMEOUT"
+
+	// EnvShutdownDelay is how long system.RunForever keeps serving
+	// after SIGTERM, with readiness already answering 503, before it
+	// stops any module. Go duration ("5s"); default 5s, "0" disables.
+	// It is spent inside the EnvShutdownTimeout budget, so module
+	// shutdown gets the remainder (25s - 5s = 20s by default).
+	EnvShutdownDelay = "HB_SHUTDOWN_DELAY"
 
 	// EnvMinIOEndpoint is the PRIVATE / internal endpoint the
 	// credentialed S3 client connects to for reads AND writes

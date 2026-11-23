@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hblabs-co/kit/core/log"
+	"github.com/hblabs-co/kit/core/system"
 )
 
 func TestHealthzAllOK(t *testing.T) {
@@ -113,5 +114,30 @@ func TestHealthzNoDepsReturnsOK(t *testing.T) {
 	resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want 200 with no deps", resp.StatusCode)
+	}
+}
+
+// TestHealthzDraining: after the shutdown signal readiness answers
+// 503 "draining" without running any check.
+func TestHealthzDraining(t *testing.T) {
+	t.Cleanup(func() { system.SetDraining(false) })
+	called := false
+	dep := CheckFunc{Label: "db", Fn: func(context.Context) error { called = true; return nil }}
+	h := Healthz(HealthzOptions{}, dep)
+
+	system.SetDraining(true)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/readyz", nil))
+	var body healthzResponse
+	_ = json.NewDecoder(rec.Body).Decode(&body)
+	if rec.Code != http.StatusServiceUnavailable || body.Status != "draining" || called {
+		t.Fatalf("draining: code=%d status=%q checkCalled=%v", rec.Code, body.Status, called)
+	}
+
+	system.SetDraining(false)
+	rec = httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/readyz", nil))
+	if rec.Code != http.StatusOK || !called {
+		t.Fatalf("after drain reset: code=%d checkCalled=%v", rec.Code, called)
 	}
 }

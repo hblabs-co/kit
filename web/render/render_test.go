@@ -12,6 +12,7 @@ import (
 	"testing/fstest"
 	"time"
 
+	"github.com/hblabs-co/kit/core/system"
 	"github.com/hblabs-co/kit/web/render/og"
 )
 
@@ -1936,5 +1937,30 @@ func TestI18n_PickLangChineseScript(t *testing.T) {
 		if got := s.pickLang(req); got != want {
 			t.Errorf("pickLang(%q) = %q, want %q", header, got, want)
 		}
+	}
+}
+
+// TestMount_ReadyzDraining — after the shutdown signal readiness
+// answers 503 "draining" (even with a healthy probe) while liveness
+// stays 200, so the pod leaves the load balancer without a restart.
+func TestMount_ReadyzDraining(t *testing.T) {
+	t.Cleanup(func() { system.SetDraining(false) })
+	s := withSiteOpts(t, multiLangFS(), Options{
+		SupportedLangs: []string{"es", "en"},
+		Ready:          func(context.Context) error { return nil },
+	})
+	mux := http.NewServeMux()
+	s.Mount(mux)
+
+	system.SetDraining(true)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/readyz", nil))
+	if rec.Code != http.StatusServiceUnavailable || rec.Body.String() != "draining" {
+		t.Errorf("readyz while draining = %d %q, want 503 draining", rec.Code, rec.Body.String())
+	}
+	rec = httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+	if rec.Code != http.StatusOK {
+		t.Errorf("healthz while draining = %d, want 200", rec.Code)
 	}
 }

@@ -104,6 +104,7 @@ func TestStableValues(t *testing.T) {
 		"EnvBuildVersion":    "HB_BUILD_VERSION",
 		"EnvBuildTime":       "HB_BUILD_TIME",
 		"EnvShutdownTimeout": "HB_SHUTDOWN_TIMEOUT",
+		"EnvShutdownDelay":   "HB_SHUTDOWN_DELAY",
 		"PathHealthz":        "/healthz",
 		"PathReadyz":         "/readyz",
 		"HeaderRequestID":    "X-Request-Id",

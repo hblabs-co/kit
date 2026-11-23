@@ -9,6 +9,7 @@ import (
 
 	"github.com/hblabs-co/kit/core/constants"
 	"github.com/hblabs-co/kit/core/log"
+	"github.com/hblabs-co/kit/core/system"
 )
 
 // defaultCheckTimeout caps each individual Ping when
@@ -26,6 +27,7 @@ const (
 	statusOK       = "ok"
 	statusFail     = "fail"
 	statusDegraded = "degraded"
+	statusDrain    = "draining"
 )
 
 // logger is the minimal logging surface Healthz needs. *log.Logger
@@ -88,7 +90,9 @@ type HealthzOptions struct {
 // (`/healthz`) should stay separate and trivial — that endpoint
 // only proves the process is alive, not that it can do work.
 //
-// With no deps, Healthz returns 200 immediately.
+// With no deps, Healthz returns 200 immediately. While the process
+// drains after its shutdown signal (system.Draining) it answers 503
+// {"status":"draining"} without running the checks.
 func Healthz(opts HealthzOptions, deps ...Check) http.Handler {
 	timeout := opts.Timeout
 	if timeout <= 0 {
@@ -99,6 +103,15 @@ func Healthz(opts HealthzOptions, deps ...Check) http.Handler {
 		logger = log.Default()
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if system.Draining() {
+			// Shutdown signal received: leave the load balancer
+			// without probing dependencies.
+			w.Header().Set(constants.HeaderContentType, "application/json; charset=utf-8")
+			w.Header().Set(constants.HeaderCacheControl, "no-store")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_ = json.NewEncoder(w).Encode(healthzResponse{Status: statusDrain, Checks: []checkResult{}})
+			return
+		}
 		results := make([]checkResult, len(deps))
 		var wg sync.WaitGroup
 		for i, dep := range deps {

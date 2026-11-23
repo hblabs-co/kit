@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/hblabs-co/kit/core/constants"
@@ -44,9 +45,16 @@ type ShutdownModule interface {
 //     If any fails, no Shutdown is run (nothing started yet) and
 //     the error is returned.
 //  3. Blocks on ctx (the signal-cancellable context returned by Boot).
-//  4. On SIGTERM/SIGINT, calls Shutdown on every ShutdownModule in
-//     REVERSE order with an EnvShutdownTimeout-bounded context.
-//  5. Returns the first non-nil error from the shutdown phase, or nil
+//  4. On SIGTERM/SIGINT, flips Draining to true at once (readiness
+//     handlers answer 503 from then on), then waits the drain delay
+//     (constants.EnvShutdownDelay, default 5s) while still serving,
+//     so the load balancer stops routing to this instance before any
+//     listener closes.
+//  5. Calls Shutdown on every ShutdownModule in REVERSE order.
+//     The drain delay and the module shutdowns share one
+//     EnvShutdownTimeout budget (default 25s: 5s delay + up to 20s of
+//     module shutdown, under k8s' 30s terminationGracePeriodSeconds).
+//  6. Returns the first non-nil error from the shutdown phase, or nil
 //     if everything stopped cleanly.
 //
 // Reverse order matters: if module B was registered after A, B's
@@ -78,11 +86,22 @@ func RunForever(ctx context.Context, modules ...Module) error {
 	if appStop != nil {
 		appStop()
 	}
-	log.Info("shutdown signal received — draining")
-
+	SetDraining(true)
 	timeout := shutdownTimeout()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	delay := shutdownDelay()
+	log.Info("shutdown signal received — draining: readiness now 503", "delay", delay.String(), "budget", timeout.String())
+	if delay > 0 {
+		t := time.NewTimer(delay)
+		select {
+		case <-t.C:
+		case <-shutdownCtx.Done():
+			t.Stop()
+		}
+	}
+	log.Info("drain delay over — stopping modules")
 
 	var firstErr error
 	// Reverse order: last-registered tears down first.
@@ -155,4 +174,37 @@ func shutdownTimeout() time.Duration {
 		return d
 	}
 	return defaultShutdownTimeout
+}
+
+// draining is set by RunForever when the shutdown signal arrives.
+var draining atomic.Bool
+
+// Draining reports whether the process received its shutdown signal
+// and is draining. Readiness handlers answer 503 while it is true so
+// the load balancer stops routing new requests here; liveness must
+// stay 200 (the process is healthy, just leaving).
+func Draining() bool { return draining.Load() }
+
+// SetDraining sets the flag Draining reports. RunForever sets it on
+// the shutdown signal; a custom lifecycle (or a test of a readiness
+// handler) may set it directly.
+func SetDraining(v bool) { draining.Store(v) }
+
+// defaultShutdownDelay is the drain delay applied when
+// constants.EnvShutdownDelay is unset or unparseable: long enough for
+// kube-proxy / ingress controllers to see the failed readiness probe
+// or the endpoint removal and stop sending traffic.
+const defaultShutdownDelay = 5 * time.Second
+
+// shutdownDelay reads constants.EnvShutdownDelay (a Go duration;
+// "0" disables the delay) and falls back to defaultShutdownDelay.
+func shutdownDelay() time.Duration {
+	s := strings.TrimSpace(os.Getenv(constants.EnvShutdownDelay))
+	if s == "" {
+		return defaultShutdownDelay
+	}
+	if d, err := time.ParseDuration(s); err == nil && d >= 0 {
+		return d
+	}
+	return defaultShutdownDelay
 }
