@@ -1,6 +1,7 @@
 package site
 
 import (
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -194,5 +195,48 @@ func TestWrapStyledNotFound_PassesThroughNon404(t *testing.T) {
 	rec = get(t, h, "/missing")
 	if rec.Code != http.StatusNotFound || !strings.Contains(rec.Body.String(), "404") {
 		t.Errorf("fallback 404 = %d %q", rec.Code, rec.Body.String())
+	}
+}
+
+func TestWithDefaults(t *testing.T) {
+	got := withDefaults(Options{})
+	if got.WatchRoot != DefaultWatchRoot || got.ConfigPath != DefaultConfigPath || got.ExtraStatic[UIKitMount] == nil {
+		t.Fatalf("defaults = %+v", got)
+	}
+
+	own := fstest.MapFS{"x.css": &fstest.MapFile{Data: []byte("x")}}
+	in := map[string]fs.FS{"other": own}
+	got = withDefaults(Options{WatchRoot: "w", ConfigPath: "c.yaml", ExtraStatic: in})
+	if got.WatchRoot != "w" || got.ConfigPath != "c.yaml" || got.ExtraStatic["other"] == nil || got.ExtraStatic[UIKitMount] == nil {
+		t.Fatalf("explicit = %+v", got)
+	}
+	if len(in) != 1 {
+		t.Fatal("caller's ExtraStatic map was mutated")
+	}
+
+	got = withDefaults(Options{ExtraStatic: map[string]fs.FS{UIKitMount: own}})
+	if _, err := fs.Stat(got.ExtraStatic[UIKitMount], "x.css"); err != nil {
+		t.Fatal("explicit uikit entry did not win")
+	}
+
+	got = withDefaults(Options{WithoutUIKit: true})
+	if _, ok := got.ExtraStatic[UIKitMount]; ok {
+		t.Fatal("WithoutUIKit still mounted the uikit")
+	}
+}
+
+// TestNew_DefaultsServeUIKit: with no ConfigPath and no ExtraStatic
+// the shared stylesheet is served under /static/uikit/.
+func TestNew_DefaultsServeUIKit(t *testing.T) {
+	t.Setenv(constants.EnvHBEnv, "production")
+	h, _, _, err := New(Options{
+		SiteFS:  siteFixture(),
+		FuncMap: map[string]any{"greet": func() string { return "" }},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rec := get(t, h, "/static/uikit/css/tokens.css"); rec.Code != http.StatusOK {
+		t.Fatalf("uikit tokens.css = %d", rec.Code)
 	}
 }

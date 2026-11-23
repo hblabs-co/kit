@@ -25,9 +25,7 @@
 //	var siteFS embed.FS
 //
 //	handler, modules, _, err := site.New(site.Options{
-//	    SiteFS:     siteFS,
-//	    WatchRoot:  "services/service-foo",
-//	    ConfigPath: "config/config.yaml",
+//	    SiteFS: siteFS, // WatchRoot ".", ConfigPath "config/config.yaml", uikit mounted by default
 //	    Rules: site.RulesOptions{
 //	        PipelinesDir: "pipelines",
 //	        Mounts: map[string]string{
@@ -78,14 +76,15 @@ type Options struct {
 
 	// WatchRoot is the on-disk source directory used in dev mode —
 	// New wraps it with os.DirFS so file edits flow through the
-	// dev wrapper without recompiling. Required when EnvHBEnv
-	// resolves to "local"; ignored otherwise.
+	// dev wrapper without recompiling. Defaults to DefaultWatchRoot
+	// (".", i.e. `go run .` from the service directory); ignored
+	// outside EnvHBEnv "local".
 	WatchRoot string
 
-	// ConfigPath is the location of config/config.yaml inside
+	// ConfigPath is the location of the framework config inside
 	// whichever fs.FS render uses. Same path in both modes —
 	// LoadConfig reads it from SiteFS in prod and from os.DirFS in
-	// dev.
+	// dev. Defaults to DefaultConfigPath.
 	ConfigPath string
 
 	// Rules wires the rules engine into the service. Zero value =
@@ -124,7 +123,13 @@ type Options struct {
 	// the same way as local ones:
 	//
 	//	{{ asset "uikit/css/tokens.css" }}
+	//
+	// The uikit is mounted under "uikit" by default (UIKitFS); an
+	// explicit "uikit" entry here wins, and WithoutUIKit opts out.
 	ExtraStatic map[string]fs.FS
+
+	// WithoutUIKit skips the default "uikit" ExtraStatic mount.
+	WithoutUIKit bool
 
 	// AdditionalImgSrc extends the framework's default CSP `img-src`
 	// directive with extra origins. Use case: in dev the asset host
@@ -276,6 +281,7 @@ func BannerExtras() []string {
 //     beyond what the middleware bundle consumes (CanonicalHost
 //     for external integrations, SEO config, etc.).
 func New(opts Options) (http.Handler, []system.Module, *config.Config, error) {
+	opts = withDefaults(opts)
 	siteHandler, renderDev, cfg, err := mountSite(opts)
 	if err != nil {
 		return nil, nil, nil, err
@@ -301,6 +307,37 @@ func New(opts Options) (http.Handler, []system.Module, *config.Config, error) {
 	mux.Handle("/", siteHandler)
 
 	return wrapCanonical(mux, cfg, opts.AdditionalImgSrc, opts.AdditionalFrameSrc), []system.Module{renderDev, rulesDev}, cfg, nil
+}
+
+// Defaults applied by New to zero Options fields.
+const (
+	DefaultWatchRoot  = "."
+	DefaultConfigPath = "config/config.yaml"
+	// UIKitMount is the ExtraStatic key (URL segment) of the default
+	// uikit mount: /static/uikit/...
+	UIKitMount = "uikit"
+)
+
+// withDefaults fills WatchRoot, ConfigPath and the uikit mount. The
+// caller's ExtraStatic map is copied, never mutated.
+func withDefaults(opts Options) Options {
+	if opts.WatchRoot == "" {
+		opts.WatchRoot = DefaultWatchRoot
+	}
+	if opts.ConfigPath == "" {
+		opts.ConfigPath = DefaultConfigPath
+	}
+	if !opts.WithoutUIKit {
+		if _, ok := opts.ExtraStatic[UIKitMount]; !ok {
+			extra := make(map[string]fs.FS, len(opts.ExtraStatic)+1)
+			for k, v := range opts.ExtraStatic {
+				extra[k] = v
+			}
+			extra[UIKitMount] = UIKitFS()
+			opts.ExtraStatic = extra
+		}
+	}
+	return opts
 }
 
 // mountSite resolves the framework config and builds the inner
