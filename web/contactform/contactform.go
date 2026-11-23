@@ -11,7 +11,7 @@
 //
 // Wiring:
 //
-//	guard := csrf.New(csrf.Options{Secure: !siteurl.IsDev()})
+//	guard := csrf.New(csrf.Options{})
 //	mux.Handle("POST /contact", &contactform.Handler{
 //	    Fields: []contactform.Field{
 //	        {Name: "message", Label: "Message", Required: true, Multiline: true},

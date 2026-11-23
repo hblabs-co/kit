@@ -10,7 +10,7 @@
 // cookie but cannot read it to fill the field, and the cookie is
 // SameSite=Strict on top.
 //
-//	guard := csrf.New(csrf.Options{Secure: !siteurl.IsDev()})
+//	guard := csrf.New(csrf.Options{}) // Secure cookie unless HB_ENV=local
 //	mux.Handle("/", guard.Issue(pages))
 //	// in the POST handler:
 //	if err := guard.Verify(r); err != nil { ... reject ... }
@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/hblabs-co/kit/web/siteurl"
 )
 
 // Defaults applied by New.
@@ -50,8 +52,11 @@ type Options struct {
 	Cookie string
 	// Field is the hidden form field name.
 	Field string
-	// Secure sets the cookie's Secure flag (true outside local dev).
-	Secure bool
+	// Insecure drops the cookie's Secure flag. The flag is set by
+	// default and dropped automatically in local dev
+	// (siteurl.IsDev(), HB_ENV=local), where pages run on plain
+	// http://localhost; set Insecure only for another non-TLS setup.
+	Insecure bool
 	// MaxAge is the sliding cookie lifetime.
 	MaxAge time.Duration
 }
@@ -65,9 +70,11 @@ type Guard struct {
 	maxAge int
 }
 
-// New applies defaults to opts.
+// New applies defaults to opts. Whether the cookie is Secure is
+// decided here, from opts.Insecure and HB_ENV.
 func New(opts Options) *Guard {
-	g := &Guard{cookie: opts.Cookie, field: opts.Field, secure: opts.Secure, maxAge: int(opts.MaxAge / time.Second)}
+	secure := !opts.Insecure && !siteurl.IsDev()
+	g := &Guard{cookie: opts.Cookie, field: opts.Field, secure: secure, maxAge: int(opts.MaxAge / time.Second)}
 	if g.cookie == "" {
 		g.cookie = DefaultCookie
 	}

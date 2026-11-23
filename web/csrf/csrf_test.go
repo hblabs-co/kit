@@ -10,25 +10,39 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hblabs-co/kit/core/constants"
 	"github.com/hblabs-co/kit/web/uikit"
 )
 
 const tok = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
 func TestNew_Defaults(t *testing.T) {
+	t.Setenv(constants.EnvHBEnv, "prod")
 	g := New(Options{})
-	if g.Cookie() != DefaultCookie || g.Field() != DefaultField || g.maxAge != int(DefaultMaxAge/time.Second) || g.secure {
+	if g.Cookie() != DefaultCookie || g.Field() != DefaultField || g.maxAge != int(DefaultMaxAge/time.Second) || !g.secure {
 		t.Fatalf("defaults = %+v", g)
 	}
-	g = New(Options{Cookie: "c", Field: "f", Secure: true, MaxAge: time.Hour})
-	if g.Cookie() != "c" || g.Field() != "f" || g.maxAge != 3600 || !g.secure {
+	g = New(Options{Cookie: "c", Field: "f", Insecure: true, MaxAge: time.Hour})
+	if g.Cookie() != "c" || g.Field() != "f" || g.maxAge != 3600 || g.secure {
 		t.Fatalf("overrides = %+v", g)
+	}
+}
+
+func TestNew_InsecureInLocalDev(t *testing.T) {
+	t.Setenv(constants.EnvHBEnv, "local")
+	if New(Options{}).secure {
+		t.Fatal("Secure cookie on local dev (plain http)")
+	}
+	t.Setenv(constants.EnvHBEnv, "")
+	if New(Options{}).secure {
+		t.Fatal("unset HB_ENV means local; want no Secure flag")
 	}
 }
 
 func TestIssue(t *testing.T) {
 	next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusTeapot) })
-	h := New(Options{Secure: true}).Issue(next)
+	t.Setenv(constants.EnvHBEnv, "prod")
+	h := New(Options{}).Issue(next)
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
