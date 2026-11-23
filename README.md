@@ -22,7 +22,7 @@ versioned on its own. Apps import tagged versions instead of copying the code.
 | `github.com/hblabs-co/kit/mongo` | MongoDB wrapper (`Open`, `Module`, key/value datasource), duplicate-key helpers, declarative index manifests (`IndexSpec`, `Reconcile`, `FindSpec`, `ValidateManifest`) | mongo-driver v2 |
 | `github.com/hblabs-co/kit/objectstore` | MinIO / S3 client wrapper | minio-go |
 | `github.com/hblabs-co/kit/observability` | Prometheus metrics, OTLP tracing, `Healthz` / `Liveness` handlers | prometheus, otel |
-| `github.com/hblabs-co/kit/mail` | `scaleway`: Scaleway Transactional Email client (send, typed API errors, retryability, extra headers) and `Notifier` (fixed sender → fixed recipient, plain text, Reply-To) | none |
+| `github.com/hblabs-co/kit/mail` | `scaleway`: Scaleway Transactional Email client (send, typed API errors, retryability, extra headers) and `Notifier` (fixed sender → fixed recipient, plain text, Reply-To). The client reads no environment; `NotifierFromEnv` reads `HB_SCALEWAY_SECRET_KEY`, `HB_SCALEWAY_PROJECT_ID`, `HB_SCALEWAY_REGION`, `HB_MAIL_FROM`, `HB_MAIL_FROM_NAME` | none |
 
 Every module except `mail` depends on `core`; nothing else depends on anything
 else, so an app that only needs NATS does not compile Mongo or the web

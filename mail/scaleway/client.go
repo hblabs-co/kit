@@ -17,9 +17,9 @@
 //   - Plain error (wrapped) for transport-level failures (DNS,
 //     timeout, malformed response body). Treat these as retryable.
 //
-// The package reads no environment variables: the app decides which
-// keys hold the secret key, project ID and region and passes the
-// values in Options.
+// Client reads no environment variables: the app passes the secret
+// key, project ID and region in Options. NotifierFromEnv is the one
+// helper that reads the standard HB_SCALEWAY_* / HB_MAIL_FROM* keys.
 package scaleway
 
 import (
